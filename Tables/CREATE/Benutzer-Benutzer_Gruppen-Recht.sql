@@ -1,5 +1,5 @@
 -- Generiert von Oracle SQL Developer Data Modeler 3.1.4.710
---   am/um:        2013-03-07 13:41:36 MEZ
+--   am/um:        2013-03-08 10:26:54 MEZ
 --   Site:      Oracle Database 11g
 --   Typ:      Oracle Database 11g
 
@@ -15,6 +15,10 @@ DROP TABLE Dokumente CASCADE CONSTRAINTS
 ;
 DROP TABLE Rechte CASCADE CONSTRAINTS 
 ;
+DROP TABLE USGR_RI CASCADE CONSTRAINTS 
+;
+DROP TABLE US_USGR CASCADE CONSTRAINTS 
+;
 CREATE TABLE Benutzer 
     ( 
      US_PK_NR NUMBER (5)  NOT NULL , 
@@ -22,8 +26,7 @@ CREATE TABLE Benutzer
      US_Vorname VARCHAR2 (30 CHAR)  NOT NULL , 
      US_Nachname VARCHAR2 (30 CHAR)  NOT NULL , 
      US_PASSWORD VARCHAR2 (100 CHAR)  NOT NULL , 
-     US_erstellt_am DATE DEFAULT sysdate  NOT NULL , 
-     US_USGR_FK NUMBER (5)  NOT NULL 
+     US_erstellt_am DATE DEFAULT sysdate  NOT NULL 
     ) 
 ;
 
@@ -38,9 +41,7 @@ CREATE TABLE Benutzer_Gruppe
     ( 
      USGR_PK_NR NUMBER (5)  NOT NULL , 
      USGR_Name VARCHAR2 (100 CHAR)  NOT NULL , 
-     USGR_erstellt_am DATE DEFAULT sysdate , 
-     USGR_RI_FK_RECHT1 NUMBER (5)  NOT NULL , 
-     USGR_RI_FK_RECHT2 NUMBER (5)  NOT NULL 
+     USGR_erstellt_am DATE DEFAULT sysdate 
     ) 
 ;
 
@@ -103,6 +104,36 @@ ALTER TABLE Rechte
 
 
 
+CREATE TABLE USGR_RI 
+    ( 
+     Benutzer_Gruppe_USGR_PK_NR NUMBER (5)  NOT NULL , 
+     Rechte_RI_PK_NR NUMBER (5)  NOT NULL , 
+     USGR_RI_erstellt_am DATE DEFAULT sysdate 
+    ) 
+;
+
+
+
+ALTER TABLE USGR_RI 
+    ADD CONSTRAINT USGR_RI_PK PRIMARY KEY ( Benutzer_Gruppe_USGR_PK_NR, Rechte_RI_PK_NR ) ;
+
+
+
+CREATE TABLE US_USGR 
+    ( 
+     Benutzer_US_PK_NR NUMBER (5)  NOT NULL , 
+     Benutzer_Gruppe_USGR_PK_NR NUMBER (5)  NOT NULL , 
+     US_USGR_erstellt_am DATE DEFAULT sysdate 
+    ) 
+;
+
+
+
+ALTER TABLE US_USGR 
+    ADD CONSTRAINT US_USGR_PK PRIMARY KEY ( Benutzer_US_PK_NR, Benutzer_Gruppe_USGR_PK_NR ) ;
+
+
+
 
 ALTER TABLE Dokumente 
     ADD CONSTRAINT DOC_END_FK FOREIGN KEY 
@@ -140,22 +171,22 @@ ALTER TABLE Dokumente
 ;
 
 
-ALTER TABLE Benutzer_Gruppe 
-    ADD CONSTRAINT USGR_RI_FK_RECHT1 FOREIGN KEY 
+ALTER TABLE USGR_RI 
+    ADD CONSTRAINT USGR_RI_Benutzer_Gruppe_FK FOREIGN KEY 
     ( 
-     USGR_RI_FK_RECHT1
+     Benutzer_Gruppe_USGR_PK_NR
     ) 
-    REFERENCES Rechte 
+    REFERENCES Benutzer_Gruppe 
     ( 
-     RI_PK_NR
+     USGR_PK_NR
     ) 
 ;
 
 
-ALTER TABLE Benutzer_Gruppe 
-    ADD CONSTRAINT USGR_RI_FK_RECHT2 FOREIGN KEY 
+ALTER TABLE USGR_RI 
+    ADD CONSTRAINT USGR_RI_Rechte_FK FOREIGN KEY 
     ( 
-     USGR_RI_FK_RECHT2
+     Rechte_RI_PK_NR
     ) 
     REFERENCES Rechte 
     ( 
@@ -188,10 +219,22 @@ ALTER TABLE Dateiendung
 ;
 
 
-ALTER TABLE Benutzer 
-    ADD CONSTRAINT US_USGR_FK FOREIGN KEY 
+ALTER TABLE US_USGR 
+    ADD CONSTRAINT US_USGR_Benutzer_FK FOREIGN KEY 
     ( 
-     US_USGR_FK
+     Benutzer_US_PK_NR
+    ) 
+    REFERENCES Benutzer 
+    ( 
+     US_PK_NR
+    ) 
+;
+
+
+ALTER TABLE US_USGR 
+    ADD CONSTRAINT US_USGR_Benutzer_Gruppe_FK FOREIGN KEY 
+    ( 
+     Benutzer_Gruppe_USGR_PK_NR
     ) 
     REFERENCES Benutzer_Gruppe 
     ( 
@@ -203,9 +246,9 @@ ALTER TABLE Benutzer
 
 -- Zusammenfassungsbericht für Oracle SQL Developer Data Modeler: 
 -- 
--- CREATE TABLE                             5
+-- CREATE TABLE                             7
 -- CREATE INDEX                             0
--- ALTER TABLE                             13
+-- ALTER TABLE                             16
 -- CREATE VIEW                              0
 -- CREATE PACKAGE                           0
 -- CREATE PACKAGE BODY                      0
